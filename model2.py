@@ -28,7 +28,7 @@ EPS = 1e-12
 
 
 def create_model(inputs, captions, sequence_lengths, targets, a): 
-	def create_discriminator(discrim_inputs, discrim_targets):
+	def create_discriminator(discrim_inputs, text_embedding, discrim_targets):
 		n_layers = 3
 		layers = []
 
@@ -52,10 +52,18 @@ def create_model(inputs, captions, sequence_lengths, targets, a):
 				normalized = batchnorm(convolved)
 				rectified = lrelu(normalized, 0.2)
 				layers.append(rectified)
-
+		if a.text_model.startswith('attention'):
+			unrectified = conv(rectified, 2 * a.ndf, stride=stride)
 		# layer_5: [batch, 31, 31, ndf * 8] => [batch, 30, 30, 1]
 		with tf.variable_scope("layer_%d" % (len(layers) + 1)):
-			convolved = conv(rectified, out_channels=1, stride=1)
+			# add language.
+			
+			if a.text_model.startswith('attention'):
+				combined = build_merger(unrectified, text_embedding, a, reuse = None)
+			else:
+				combined = rectified
+
+			convolved = conv(combined, out_channels=1, stride=1)
 			output = tf.sigmoid(convolved)
 			layers.append(output)
 
@@ -66,20 +74,20 @@ def create_model(inputs, captions, sequence_lengths, targets, a):
 		if a.model == 'pix2pix':
 			outputs, emb_init, embedding_placeholder = create_generator_pix2pix([inputs, captions, sequence_lengths], out_channels, a)
 		elif a.model == 'colornet':
-			outputs, emb_init, embedding_placeholder = create_generator_colornet([inputs, captions, sequence_lengths], out_channels, a) 
+			outputs, emb_init, embedding_placeholder, text_embedding = create_generator_colornet([inputs, captions, sequence_lengths], out_channels, a) 
 
 	# create two copies of discriminator, one for real pairs and one for fake pairs
 	# they share the same underlying variables
 	with tf.name_scope("real_discriminator"):
 		with tf.variable_scope("discriminator"):
 			# 2x [batch, height, width, channels] => [batch, 30, 30, 1]
-			predict_real = create_discriminator(inputs, targets)
+			predict_real = create_discriminator(inputs, text_embedding, targets)
 
 	if a.text_model != 'attention_reasonet':
 		with tf.name_scope("fake_discriminator"):
 			with tf.variable_scope("discriminator", reuse=True):
 				# 2x [batch, height, width, channels] => [batch, 30, 30, 1]
-				predict_fake = create_discriminator(inputs, outputs)
+				predict_fake = create_discriminator(inputs, text_embedding, outputs)
 
 		
 		with tf.name_scope("discriminator_loss"):
@@ -171,7 +179,10 @@ def create_model(inputs, captions, sequence_lengths, targets, a):
 		
 		if a.text_model.startswith('attention'):
 			gen_tvars = [var for var in tf.trainable_variables() if var.name.startswith("generator") and \
-			not var.name.startswith("generator/{}/RNN/rnn/".format(a.model))]
+			not var.name.startswith("generator/{}/RNN/bidirectional_rnn".format(a.model))]
+
+			var_list = [var.name for var in tf.trainable_variables() if var.name.startswith("generator") and \
+			 var.name.startswith("generator/{}/RNN/bidirectional_rnn".format(a.model))]
 		else:
 			gen_tvars = [var for var in tf.trainable_variables() if var.name.startswith("generator")]
 

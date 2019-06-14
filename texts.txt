@@ -1,0 +1,13 @@
+image_05107.jpg:This flower has white petals and red stigma.
+image_06390.jpg:This flower has white petals and red stigma.
+image_06740.jpg:This flower has white petals and red stigma.
+image_04325.jpg:This flower has white petals and red stigma.
+image_03119.jpg:This flower has white petals and red stigma.
+image_04924.jpg:This flower has white petals and red stigma.
+image_03866.jpg:This flower has white petals and red stigma.
+image_07209.jpg:This flower has white petals and red stigma.
+image_05168.jpg:This flower has white petals and red stigma.
+image_03345.jpg:This flower has white petals and red stigma.
+image_04004.jpg:This flower has white petals and red stigma.
+image_06158.jpg:This flower has white petals and red stigma.
+image_06398.jpg:This flower has white petals and red stigma.

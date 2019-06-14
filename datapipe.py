@@ -25,14 +25,16 @@ def read_my_file_format(filename_queue, a):
 	reader = tf.TFRecordReader()
 	key, serialized_example = reader.read(filename_queue)
 	features, sequence_features = tf.parse_single_sequence_example(
-		serialized_example, context_features={
+		serialized_example, 
+		context_features={
 			'image/encoded': tf.FixedLenFeature([], tf.string),
 			'image/height': tf.FixedLenFeature([], tf.int64),
 			'image/channels': tf.FixedLenFeature([], tf.int64),
 			'image/width': tf.FixedLenFeature([], tf.int64),
 			# 'image/caption_embedding': tf.FixedLenFeature([], tf.string),
 			'image/sequence_length': tf.FixedLenFeature([], tf.int64)
-			}, sequence_features={
+			}, 
+			sequence_features={
 			"caption": tf.FixedLenSequenceFeature([], dtype=tf.int64)
 			})
 
@@ -312,7 +314,8 @@ def create_test_batcher(filenames, caption_strs, embedding, a):
 	with tf.name_scope("target_images"):
 		target_images = transform(b_images)
 
-	Examples = collections.namedtuple("Examples", "images, token_ids, sequence_lengths_array, raw_caption_id, raw_image, raw_sequence_lengths, inputs, targets, captions, sequence_lengths")
+	Examples = collections.namedtuple("Examples", 
+		"images, token_ids, sequence_lengths_array, raw_caption_id, raw_image, raw_sequence_lengths, inputs, targets, captions, sequence_lengths")
 
 	return Examples(
 		images=image_matrices,
